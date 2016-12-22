@@ -19,7 +19,7 @@
             | fecha de publicación.                                            |
             |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
 
-            <span>Publicado {{ _product.publishedDate }}</span>
+            <span>Publicado {{ _product.publishedDate | LapseOfTime }}</span>
         </p>
         <p [innerHtml]="_product.description"></p>
         <user-profile [userId]="_product.seller.id"></user-profile>

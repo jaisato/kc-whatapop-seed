@@ -12,3 +12,14 @@ import "moment/locale/es";
 | tienes que usarla donde proceda. Haciendo                        |
 | 'moment(fecha).fromNow()' obtenemos justo lo que necesitamos.    |
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+import { Pipe, PipeTransform } from "@angular/core";
+
+@Pipe({
+    name: "LapseOfTime"
+})
+export class PublicationDatePipe implements PipeTransform {
+    transform(publishedDate: number) {
+        return moment(publishedDate).fromNow();
+    }
+}
