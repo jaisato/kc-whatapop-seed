@@ -29,6 +29,8 @@ export class ProductService {
         |   _sort=publishedDate&_order=DESC                                |
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
+        let sortByPublishedDateDesc: string = "_sort=publishedDate&_order=DESC";
+
         /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
         | Red Path                                                         |
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
@@ -60,7 +62,7 @@ export class ProductService {
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
         return this._http
-                   .get(`${this._backendUri}/products`)
+                   .get(`${this._backendUri}/products?${sortByPublishedDateDesc}`)
                    .map((data: Response): Product[] => Product.fromJsonToList(data.json()));
     }
 
