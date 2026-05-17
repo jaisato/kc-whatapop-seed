@@ -21,7 +21,8 @@
 
             <span>Publicado {{ _product.publishedDate | LapseOfTime }}</span>
         </p>
-        <p [innerHtml]="_product.description"></p>
+        <!-- Replaced [innerHTML] binding with text interpolation to prevent XSS -->
+        <p>{{ _product.description }}</p>
         <user-profile [userId]="_product.seller.id"></user-profile>
 
         <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
