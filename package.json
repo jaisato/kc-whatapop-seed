@@ -1,7 +1,7 @@
 {
   "name": "kc-whatapop-seed",
   "version": "1.0.0",
-  "description": "Seed de la práctica HTML5 + CSS3 + Angular para el Mobile Startup Engineering de KeepCoding.",
+  "description": "Seed de la practica HTML5 + CSS3 + Angular para el Mobile Startup Engineering de KeepCoding.",
   "scripts": {
     "start": "tsc && concurrently \"tsc -w\" \"json-server ./db.json --port 5000\" \"lite-server\" "
   },
@@ -11,30 +11,30 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@angular/common": "~2.4.0",
-    "@angular/compiler": "~2.4.0",
-    "@angular/core": "~2.4.0",
-    "@angular/forms": "~2.4.0",
-    "@angular/http": "~2.4.0",
-    "@angular/platform-browser": "~2.4.0",
-    "@angular/platform-browser-dynamic": "~2.4.0",
-    "@angular/router": "~3.4.0",
-    "angular-in-memory-web-api": "~0.2.0",
-    "core-js": "^2.4.1",
+    "@angular/common": "~2.4.10",
+    "@angular/compiler": "~2.4.10",
+    "@angular/core": "~2.4.10",
+    "@angular/forms": "~2.4.10",
+    "@angular/http": "~2.4.10",
+    "@angular/platform-browser": "~2.4.10",
+    "@angular/platform-browser-dynamic": "~2.4.10",
+    "@angular/router": "~3.4.10",
+    "angular-in-memory-web-api": "~0.2.4",
+    "core-js": "^2.6.12",
     "font-awesome": "^4.7.0",
-    "foundation-sites": "^6.2.4",
-    "moment": "^2.17.1",
-    "primeng": "^1.0.1",
-    "reflect-metadata": "^0.1.8",
-    "rxjs": "^5.0.1",
-    "systemjs": "0.19.40",
-    "zone.js": "^0.7.2"
+    "foundation-sites": "^6.8.1",
+    "moment": "^2.29.4",
+    "primeng": "^1.1.4",
+    "reflect-metadata": "^0.1.14",
+    "rxjs": "^5.5.12",
+    "systemjs": "0.19.47",
+    "zone.js": "^0.7.8"
   },
   "devDependencies": {
-    "@types/node": "^6.0.46",
-    "concurrently": "^3.1.0",
-    "json-server": "^0.9.2",
-    "lite-server": "^2.2.2",
-    "typescript": "~2.0.10"
+    "@types/node": "^6.0.118",
+    "concurrently": "^3.6.1",
+    "json-server": "^0.17.4",
+    "lite-server": "^2.6.1",
+    "typescript": "~2.4.2"
   }
 }
