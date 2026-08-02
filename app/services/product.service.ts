@@ -52,10 +52,10 @@ export class ProductService {
         if (filter) {
             let searchParams = new URLSearchParams();
 
-            if (filter.text !== null) {
+            if (filter.text != null) {
                 searchParams.append('q', filter.text);
             }
-            if (filter.category !== null) {
+            if (filter.category != null) {
                 searchParams.append('category.id', filter.category);
             }
 
@@ -74,7 +74,7 @@ export class ProductService {
         |       state=x (siendo x el estado)                               |
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-            if (filter.state !== null) {
+            if (filter.state != null) {
                 searchParams.append('state', filter.state);
             }
 
