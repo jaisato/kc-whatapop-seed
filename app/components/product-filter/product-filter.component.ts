@@ -26,7 +26,12 @@ export class ProductFilterComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(): void {
-        this._categoriesSubscription.unsubscribe();
+        // Guarded: a component destroyed before ngOnInit completed has no
+        // subscription, and unsubscribing on undefined throws out of the
+        // teardown - which stops Angular running the rest of it.
+        if (this._categoriesSubscription) {
+            this._categoriesSubscription.unsubscribe();
+        }
     }
 
     notifyHost(): void {

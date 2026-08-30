@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { Subject } from "rxjs/Subject";
+import { Subscription } from "rxjs/Subscription";
 import "rxjs/add/operator/switchMap";
 
 import { Product } from "../../models/product";
@@ -15,6 +16,7 @@ export class ProductsCollectionComponent implements OnDestroy, OnInit {
     
     private _products: Product[];
     private _filterStream$: Subject<ProductFilter> = new Subject;
+    private _subscription: Subscription;
 
     constructor(
         private _productService: ProductService,
@@ -22,14 +24,23 @@ export class ProductsCollectionComponent implements OnDestroy, OnInit {
     ) { }
 
     ngOnInit(): void {
-        this._filterStream$
+        // The Subscription is kept. Without it, ngOnDestroy had nothing to tear
+        // down but the Subject itself, which leaves the switchMap's in-flight
+        // HTTP request running and its handler holding a reference to a
+        // destroyed component - and any later next() on an unsubscribed Subject
+        // throws ObjectUnsubscribedError rather than being ignored.
+        this._subscription = this._filterStream$
             .switchMap((filter: ProductFilter) => this._productService.getProducts(filter))
             .subscribe((products: Product[]) => this._products = products);
         this.filterCollection(null);
     }
 
     ngOnDestroy(): void {
-        this._filterStream$.unsubscribe();
+        this._filterStream$.complete();
+
+        if (this._subscription) {
+            this._subscription.unsubscribe();
+        }
     }
 
     filterCollection(filter: ProductFilter): void {
