@@ -219,3 +219,31 @@ Ahora mismo no tenemos muchas opciones para filtrar los productos, ni hablemos y
 Y aquí llegó el **Señor Path**, el que te todo lo puede. O no todo, pero sí que es algo más complicado que los anteriores y por eso lo hago saber. ¿Qué debemos desarrollar en este **Path**? Pues necesitamos tener localizado un punto donde pintar la colección de productos que está vendiendo un usuario concreto. Aportaría mucho valor a **Whatapop** ofrecer la posibilidad de consultar otros productos vendidos por el mismo usuario. ¡Demuestra que sabes hacerlo! ¡Hay una piruleta de colores en juego!
 
 **Pista:** quizá puedas reutilizar algo de código. ¿Recuerdas el componente que mostraba una colección de productos?
+
+## Instalación reproducible y comprobación de tipos
+
+Se incluye `package-lock.json` para fijar las versiones instaladas y permitir que
+las herramientas de análisis identifiquen las dependencias reales. Con npm 9:
+
+```sh
+npm ci --ignore-scripts --no-audit --no-fund
+./node_modules/.bin/tsc --noEmit
+```
+
+La configuración `.npmrc` conserva la resolución de peer dependencies de npm 3–6
+que utilizaba este proyecto Angular 2. Debe mantenerse al regenerar el lockfile y
+al ejecutar `npm ci`; no garantiza compatibilidad de ejecución entre dependencias.
+Se omiten los scripts de instalación en esta comprobación, incluidos los de las
+herramientas antiguas de navegador. Para ejecutar esas herramientas hace falta
+validar por separado sus requisitos y scripts.
+
+`compilerOptions.types` está vacío porque la aplicación usa las bibliotecas DOM
+y los tipos de sus módulos importados. Así se evita que TypeScript 2 cargue
+automáticamente tipos globales de herramientas transitivas, como `@types/ws`,
+que requieren compiladores más recientes. Si se añaden tests que necesiten tipos
+globales, deberán usar una configuración de tests explícita.
+
+Esta comprobación valida la compilación; no sustituye las pruebas en navegador.
+Angular 2 y varias herramientas de este proyecto tienen dependencias obsoletas y
+avisos de seguridad pendientes. El lockfile no corrige esos avisos: la migración
+del framework y del entorno de desarrollo debe planificarse y probarse aparte.
