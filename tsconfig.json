@@ -12,6 +12,7 @@
       "dom"
     ],
     "noImplicitAny": true,
+    "types": [],
     "suppressImplicitAnyIndexErrors": true
   },
   "exclude": [
