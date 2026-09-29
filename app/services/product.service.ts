@@ -52,15 +52,10 @@ export class ProductService {
         if (filter) {
             let searchParams = new URLSearchParams();
 
-            // Truthiness, not `!== null`: the filter form starts as `{}`, so a
-            // field the user never touched is `undefined`, and appending it sent
-            // `q=undefined` / `category.id=undefined` - a search on the literal
-            // word "undefined" that matched nothing. Searching only by
-            // category, or only by text, therefore always came back empty.
-            if (filter.text) {
+            if (filter.text !== null) {
                 searchParams.append('q', filter.text);
             }
-            if (filter.category) {
+            if (filter.category !== null) {
                 searchParams.append('category.id', filter.category);
             }
 
@@ -79,7 +74,7 @@ export class ProductService {
         |       state=x (siendo x el estado)                               |
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-            if (filter.state) {
+            if (filter.state !== null) {
                 searchParams.append('state', filter.state);
             }
 
