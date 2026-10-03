@@ -36,5 +36,10 @@
     "json-server": "^0.17.4",
     "lite-server": "^2.2.2",
     "typescript": "~2.0.10"
+  },
+  "overrides": {
+    "axios": "0.34.0",
+    "send": "0.19.2",
+    "serve-static": "1.16.3"
   }
 }
