@@ -11,7 +11,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@angular/common": "~2.4.0",
+    "@angular/common": "~20.3.28",
     "@angular/compiler": "~2.4.0",
     "@angular/core": "~2.4.0",
     "@angular/forms": "~2.4.0",
