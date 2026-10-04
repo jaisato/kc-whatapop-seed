@@ -19,6 +19,11 @@ export class UserProfileComponent implements OnChanges, OnDestroy {
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes["userId"] && changes["userId"]["currentValue"]) {
+            // Drop the previous request: if userId changes while it is still
+            // in flight, its late answer would overwrite the new user.
+            if (this._userSubscription) {
+                this._userSubscription.unsubscribe();
+            }
             this._userSubscription = this._userService
                                          .getUser(this.userId)
                                          .subscribe(data => this.user = data);

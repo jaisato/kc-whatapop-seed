@@ -21,6 +21,9 @@
     <div *ngIf="_products?.length === 0" class="text-center">
         <span>No se han encontrado productos.</span>
     </div>
+    <div *ngIf="_loadError" class="text-center">
+        <span>No se han podido cargar los productos. Inténtalo de nuevo.</span>
+    </div>
 </div>
 <div class="text-center">
 

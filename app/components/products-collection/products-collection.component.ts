@@ -1,6 +1,9 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Observable } from "rxjs/Observable";
 import { Subject } from "rxjs/Subject";
 import { Subscription } from "rxjs/Subscription";
+import "rxjs/add/observable/of";
+import "rxjs/add/operator/catch";
 import "rxjs/add/operator/switchMap";
 
 import { Product } from "../../models/product";
@@ -15,6 +18,7 @@ import { Router } from "@angular/router";
 export class ProductsCollectionComponent implements OnDestroy, OnInit {
     
     private _products: Product[];
+    private _loadError: boolean = false;
     private _filterStream$: Subject<ProductFilter> = new Subject;
     private _subscription: Subscription;
 
@@ -30,8 +34,16 @@ export class ProductsCollectionComponent implements OnDestroy, OnInit {
         // destroyed component - and any later next() on an unsubscribed Subject
         // throws ObjectUnsubscribedError rather than being ignored.
         this._subscription = this._filterStream$
-            .switchMap((filter: ProductFilter) => this._productService.getProducts(filter))
-            .subscribe((products: Product[]) => this._products = products);
+            // The error is caught inside switchMap: let through, a single
+            // failed request terminated the stream, and from then on "Buscar"
+            // did nothing at all until the page was reloaded.
+            .switchMap((filter: ProductFilter) => this._productService
+                .getProducts(filter)
+                .catch(() => Observable.of(null)))
+            .subscribe((products: Product[]) => {
+                this._loadError = products === null;
+                this._products = products;
+            });
         this.filterCollection(null);
     }
 

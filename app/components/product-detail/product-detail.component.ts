@@ -34,9 +34,20 @@ export class ProductDetailComponent implements OnDestroy, OnInit {
     }
 
     private _buyProduct(): void {
+        // Without an error callback a failed PATCH was rethrown as an
+        // uncaught error and the user got no answer at all to "Comprar".
         this._productSubscription = this._productService
                                         .buyProduct(this._product.id)
-                                        .subscribe(() => this._showPurchaseConfirmation())
+                                        .subscribe(
+                                            () => this._showPurchaseConfirmation(),
+                                            () => this._showPurchaseError());
+    }
+
+    private _showPurchaseError(): void {
+        this._confirmationService.confirm({
+            rejectVisible: false,
+            message: "No se ha podido completar la compra. Inténtalo de nuevo."
+        });
     }
 
     private _showPurchaseConfirmation(): void {
@@ -52,7 +63,11 @@ export class ProductDetailComponent implements OnDestroy, OnInit {
     }
 
     showPurchaseWarning(): void {
+        // rejectVisible is explicit because p-confirmDialog keeps the last
+        // value it was given: after the error dialog (no reject button) a
+        // retry would otherwise ask "¿Estás seguro?" with no way to say no.
         this._confirmationService.confirm({
+            rejectVisible: true,
             message: `Vas a comprar ${this._product.name}. ¿Estás seguro?`,
             accept: () => this._buyProduct()
         });

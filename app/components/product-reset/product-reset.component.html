@@ -11,4 +11,10 @@
     <div *ngIf="_products?.length === 0" class="text-center">
         <span>Todos los productos están a la venta.</span>
     </div>
+    <div *ngIf="_products === null" class="text-center">
+        <span>No se han podido cargar los productos vendidos.</span>
+    </div>
+    <div *ngIf="_updateError" class="text-center">
+        <span>{{ _updateError }}</span>
+    </div>
 </div>

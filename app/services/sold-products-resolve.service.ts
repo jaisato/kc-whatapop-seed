@@ -1,6 +1,8 @@
 import { Injectable } from "@angular/core";
 import { Resolve } from "@angular/router";
 import { Observable } from "rxjs/Observable";
+import "rxjs/add/observable/of";
+import "rxjs/add/operator/catch";
 
 import { Product } from "../models/product";
 import { ProductService } from "./product.service";
@@ -32,6 +34,10 @@ export class SoldProductsResolve implements Resolve<Product[]> {
         let filter: ProductFilter = {};
         filter.state = "sold";
 
-        return this._productService.getProducts(filter);
+        // A resolver that errors cancels the navigation and leaves the outlet
+        // empty; null lets /reset load and say the list is unavailable.
+        return this._productService
+                   .getProducts(filter)
+                   .catch(() => Observable.of(null));
     }
 }
