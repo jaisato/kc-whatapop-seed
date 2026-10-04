@@ -51,6 +51,7 @@
             ],
             "styles": [
               "node_modules/foundation-sites/dist/css/foundation-float.css",
+              "node_modules/@fontsource/roboto/latin-400.css",
               "src/styles.css"
             ]
           },
