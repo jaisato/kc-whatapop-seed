@@ -1,5 +1,5 @@
 export interface ProductFilter {
-    text?: string;
-    category?: string;
-    state?: string;
+  text?: string;
+  category?: string;
+  state?: string;
 }

@@ -1,9 +1,9 @@
-import { inject } from "@angular/core";
-import { ResolveFn } from "@angular/router";
+import { inject } from '@angular/core';
+import { ResolveFn } from '@angular/router';
 
-import { Product } from "../models/product";
-import { ProductService } from "./product.service";
-import {ProductFilter} from "../models/product-filter";
+import { Product } from '../models/product';
+import { ProductService } from './product.service';
+import { ProductFilter } from '../models/product-filter';
 
 /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
 | Yellow Path                                                      |
@@ -23,8 +23,8 @@ import {ProductFilter} from "../models/product-filter";
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 export const soldProductsResolver: ResolveFn<Product[]> = () => {
-    let filter: ProductFilter = {};
-    filter.state = "sold";
+  let filter: ProductFilter = {};
+  filter.state = 'sold';
 
-    return inject(ProductService).getProducts(filter);
+  return inject(ProductService).getProducts(filter);
 };
