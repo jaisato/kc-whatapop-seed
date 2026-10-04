@@ -8,8 +8,8 @@ import { BackendUri } from '../app.settings';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  private _backendUri = inject(BackendUri);
-  private _http = inject(HttpClient);
+  private readonly _backendUri = inject(BackendUri);
+  private readonly _http = inject(HttpClient);
 
   getProducts(filter: ProductFilter | null = null): Observable<Product[]> {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|

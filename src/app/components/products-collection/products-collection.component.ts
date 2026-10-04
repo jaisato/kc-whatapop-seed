@@ -15,8 +15,8 @@ import { ProductService } from '../../services/product.service';
   styleUrl: './products-collection.component.css',
 })
 export class ProductsCollectionComponent implements OnDestroy, OnInit {
-  private _productService = inject(ProductService);
-  private _router = inject(Router);
+  private readonly _productService = inject(ProductService);
+  private readonly _router = inject(Router);
 
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   protected readonly _products = signal<Product[] | undefined>(undefined);

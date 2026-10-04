@@ -7,8 +7,8 @@ import { BackendUri } from '../app.settings';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryService {
-  private _backendUri = inject(BackendUri);
-  private _http = inject(HttpClient);
+  private readonly _backendUri = inject(BackendUri);
+  private readonly _http = inject(HttpClient);
 
   getCategories(): Observable<Category[]> {
     return this._http

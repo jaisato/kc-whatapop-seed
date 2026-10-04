@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, viewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
@@ -22,12 +22,12 @@ import { UserProfileComponent } from '../user-profile/user-profile.component';
   styleUrl: './product-detail.component.css',
 })
 export class ProductDetailComponent implements OnDestroy, OnInit {
-  private _productService = inject(ProductService);
-  private _router = inject(Router);
+  private readonly _productService = inject(ProductService);
+  private readonly _router = inject(Router);
 
   // Producto del resolver de la ruta (productDetailResolver), que
   // withComponentInputBinding() entrega como input.
-  @Input() product?: Product;
+  readonly product = input<Product>();
   private _productSubscription?: Subscription;
   // Sustituye a ConfirmationService y <p-confirmDialog> de PrimeNG.
   private readonly _confirmDialog = viewChild.required(ConfirmDialogComponent);
@@ -57,7 +57,8 @@ export class ProductDetailComponent implements OnDestroy, OnInit {
   }
 
   getImageSrc(): string {
-    return this.product && this.product.photos.length > 0 ? this.product.photos[0] : '';
+    const product = this.product();
+    return product && product.photos.length > 0 ? product.photos[0] : '';
   }
 
   showPurchaseWarning(product: Product): void {

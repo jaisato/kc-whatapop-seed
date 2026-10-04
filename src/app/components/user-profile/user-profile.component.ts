@@ -18,9 +18,9 @@ import { UserService } from '../../services/user.service';
   styleUrl: './user-profile.component.css',
 })
 export class UserProfileComponent implements OnChanges, OnDestroy {
-  private _userService = inject(UserService);
+  private readonly _userService = inject(UserService);
 
-  readonly userId = input<number | undefined>(undefined);
+  readonly userId = input<number>();
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   readonly user = signal<User | undefined>(undefined);
   private _userSubscription?: Subscription;

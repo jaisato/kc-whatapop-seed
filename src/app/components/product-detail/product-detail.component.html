@@ -1,4 +1,4 @@
-@if (product) {
+@if (product(); as product) {
   <div class="row">
     <div class="medium-4 columns">
       <img [src]="getImageSrc()" class="thumbnail" />

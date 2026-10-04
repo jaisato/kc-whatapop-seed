@@ -14,7 +14,7 @@ import { ProductFilter } from '../../models/product-filter';
   styleUrl: './product-filter.component.css',
 })
 export class ProductFilterComponent implements OnInit, OnDestroy {
-  private _categoryService = inject(CategoryService);
+  private readonly _categoryService = inject(CategoryService);
 
   readonly onSearch = output<ProductFilter>();
   // protected: la plantilla los lee (con strictTemplates no puede leer campos private).

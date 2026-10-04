@@ -1,17 +1,15 @@
-import { Component, OnDestroy, OnInit, input, linkedSignal, inject } from '@angular/core';
-
+import { Component, OnDestroy, OnInit, inject, input, linkedSignal } from '@angular/core';
 import { Subject, switchMap } from 'rxjs';
 
 import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 
 @Component({
-  imports: [],
   templateUrl: './product-reset.component.html',
   styleUrl: './product-reset.component.css',
 })
 export class ProductResetComponent implements OnDestroy, OnInit {
-  private _productService = inject(ProductService);
+  private readonly _productService = inject(ProductService);
 
   // Productos vendidos del resolver de la ruta (soldProductsResolver), que
   // withComponentInputBinding() entrega como input.
