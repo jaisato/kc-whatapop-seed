@@ -1,0 +1,10 @@
+<dialog #dialog aria-labelledby="confirm-dialog-header" (close)="onClose()">
+  <header id="confirm-dialog-header">{{ header() }}</header>
+  <p>{{ confirmation()?.message }}</p>
+  <form method="dialog">
+    <button type="submit" value="accept" class="button">Sí</button>
+    @if (confirmation()?.rejectVisible !== false) {
+      <button type="submit" value="reject" class="secondary button">No</button>
+    }
+  </form>
+</dialog>
