@@ -1,0 +1,51 @@
+dialog {
+  width: min(625px, calc(100vw - 2rem));
+  padding: 0;
+  border: 1px solid #cacaca;
+  border-radius: 3px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+dialog::backdrop {
+  background: rgba(10, 10, 10, 0.45);
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: #2199e8;
+  color: #fff;
+}
+
+h2 {
+  margin: 0;
+  color: inherit;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1.5;
+}
+
+.cerrar {
+  padding: 0 0.25rem;
+  color: inherit;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+p {
+  margin: 0;
+  padding: 1.25rem 1rem 0;
+}
+
+.botones {
+  padding: 1rem;
+  text-align: right;
+}
+
+.botones .button {
+  margin: 0 0 0 0.5rem;
+  min-width: 6rem;
+}

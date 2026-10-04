@@ -1,0 +1,28 @@
+<dialog
+  #dialog
+  [attr.aria-labelledby]="id + '-titulo'"
+  [attr.aria-describedby]="id + '-mensaje'"
+  (close)="onClose()"
+>
+  <div class="cabecera">
+    <h2 [id]="id + '-titulo'">{{ header() }}</h2>
+    <!-- Como la «X» de PrimeNG: cierra sin aceptar ni rechazar. -->
+    <button type="button" class="cerrar" aria-label="Cerrar" (click)="dismiss()">×</button>
+  </div>
+  <p [id]="id + '-mensaje'">{{ confirmation()?.message }}</p>
+  <div class="botones">
+    <!-- Solo recibe el foco inicial si no hay «No» (el aviso de compra realizada). -->
+    <button
+      type="button"
+      class="button"
+      [attr.autofocus]="rejectVisible() ? null : ''"
+      (click)="accept()"
+    >
+      Sí
+    </button>
+    @if (rejectVisible()) {
+      <!-- showModal() enfoca «No»: un segundo Enter o Espacio sobre «Comprar» no compra. -->
+      <button type="button" class="secondary button" autofocus (click)="reject()">No</button>
+    }
+  </div>
+</dialog>
