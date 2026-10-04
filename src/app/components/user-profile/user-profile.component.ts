@@ -1,13 +1,6 @@
-import {
-  Component,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  signal,
-  input,
-  inject,
-} from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, signal, input, inject } from '@angular/core';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { filter, switchMap } from 'rxjs';
 
 import { User } from '../../models/user';
 import { UserService } from '../../services/user.service';
@@ -17,26 +10,24 @@ import { UserService } from '../../services/user.service';
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.css',
 })
-export class UserProfileComponent implements OnChanges, OnDestroy {
+export class UserProfileComponent {
   private readonly _userService = inject(UserService);
 
   readonly userId = input<number>();
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   readonly user = signal<User | undefined>(undefined);
-  private _userSubscription?: Subscription;
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['userId'] && changes['userId']['currentValue']) {
-      this._userSubscription = this._userService
-        .getUser(changes['userId']['currentValue'])
-        .subscribe((data) => this.user.set(data));
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this._userSubscription) {
-      this._userSubscription.unsubscribe();
-    }
+  constructor() {
+    // Sustituye a ngOnChanges: cada userId (si lo hay) pide su usuario. switchMap cancela la
+    // petición anterior si sigue en curso; antes quedaba suscrita y su respuesta podía llegar
+    // después y pisar al usuario nuevo.
+    toObservable(this.userId)
+      .pipe(
+        filter((userId): userId is number => !!userId),
+        switchMap((userId: number) => this._userService.getUser(userId)),
+        takeUntilDestroyed(),
+      )
+      .subscribe((data: User) => this.user.set(data));
   }
 
   getImageSrc(): string {

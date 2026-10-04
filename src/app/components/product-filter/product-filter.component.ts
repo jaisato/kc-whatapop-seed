@@ -1,7 +1,6 @@
-import { Component, OnInit, OnDestroy, signal, output, inject } from '@angular/core';
-
+import { Component, signal, output, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
 
 import { Category } from '../../models/category';
 import { CategoryService } from '../../services/category.service';
@@ -13,7 +12,7 @@ import { ProductFilter } from '../../models/product-filter';
   templateUrl: './product-filter.component.html',
   styleUrl: './product-filter.component.css',
 })
-export class ProductFilterComponent implements OnInit, OnDestroy {
+export class ProductFilterComponent {
   private readonly _categoryService = inject(CategoryService);
 
   readonly onSearch = output<ProductFilter>();
@@ -21,21 +20,13 @@ export class ProductFilterComponent implements OnInit, OnDestroy {
   protected _productFilter: ProductFilter = {};
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   protected readonly _categories = signal<Category[]>([]);
-  private _categoriesSubscription?: Subscription;
 
-  ngOnInit(): void {
-    this._categoriesSubscription = this._categoryService
+  constructor() {
+    // takeUntilDestroyed() cancela la petición si el componente se destruye antes de la respuesta.
+    this._categoryService
       .getCategories()
+      .pipe(takeUntilDestroyed())
       .subscribe((data: Category[]) => this._categories.set(data));
-  }
-
-  ngOnDestroy(): void {
-    // Guarded: a component destroyed before ngOnInit completed has no
-    // subscription, and unsubscribing on undefined throws out of the
-    // teardown - which stops Angular running the rest of it.
-    if (this._categoriesSubscription) {
-      this._categoriesSubscription.unsubscribe();
-    }
   }
 
   notifyHost(): void {

@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, signal, inject } from '@angular/core';
-
+import { Component, signal, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Subject, Subscription, switchMap } from 'rxjs';
+import { Subject, startWith, switchMap } from 'rxjs';
 
 import { Product } from '../../models/product';
 import { ProductComponent } from '../product/product.component';
@@ -14,33 +14,25 @@ import { ProductService } from '../../services/product.service';
   templateUrl: './products-collection.component.html',
   styleUrl: './products-collection.component.css',
 })
-export class ProductsCollectionComponent implements OnDestroy, OnInit {
+export class ProductsCollectionComponent {
   private readonly _productService = inject(ProductService);
   private readonly _router = inject(Router);
 
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   protected readonly _products = signal<Product[] | undefined>(undefined);
-  private _filterStream$: Subject<ProductFilter | null> = new Subject();
-  private _subscription?: Subscription;
+  private readonly _filterStream$ = new Subject<ProductFilter | null>();
 
-  ngOnInit(): void {
-    // The Subscription is kept. Without it, ngOnDestroy had nothing to tear
-    // down but the Subject itself, which leaves the switchMap's in-flight
-    // HTTP request running and its handler holding a reference to a
-    // destroyed component - and any later next() on an unsubscribed Subject
-    // throws ObjectUnsubscribedError rather than being ignored.
-    this._subscription = this._filterStream$
-      .pipe(switchMap((filter: ProductFilter | null) => this._productService.getProducts(filter)))
+  constructor() {
+    // La primera búsqueda, sin filtro, y después una por cada «Buscar». switchMap, como antes:
+    // una búsqueda nueva cancela la anterior si sigue en curso. takeUntilDestroyed() deshace la
+    // suscripción, y cancela la petición en curso, al destruir el componente.
+    this._filterStream$
+      .pipe(
+        startWith(null),
+        switchMap((filter: ProductFilter | null) => this._productService.getProducts(filter)),
+        takeUntilDestroyed(),
+      )
       .subscribe((products: Product[]) => this._products.set(products));
-    this.filterCollection(null);
-  }
-
-  ngOnDestroy(): void {
-    this._filterStream$.complete();
-
-    if (this._subscription) {
-      this._subscription.unsubscribe();
-    }
   }
 
   filterCollection(filter: ProductFilter | null): void {
