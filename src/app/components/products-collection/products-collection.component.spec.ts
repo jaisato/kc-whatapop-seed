@@ -75,6 +75,27 @@ describe('ProductsCollectionComponent', () => {
     await responderCategorias();
   });
 
+  it('con switchMap, una búsqueda nueva cancela la anterior si sigue en curso', async () => {
+    http.expectOne(`${API}/products?${ORDEN}`).flush([productoJson(1)]);
+    await fixture.whenStable();
+    const buscar = async (texto: string) => {
+      const campo = elemento.querySelector<HTMLInputElement>('product-filter input')!;
+      campo.value = texto;
+      campo.dispatchEvent(new Event('input'));
+      elemento.querySelector<HTMLButtonElement>('product-filter button')!.click();
+      await fixture.whenStable();
+    };
+
+    await buscar('uncharted');
+    await buscar('halo');
+
+    expect(http.expectOne(`${API}/products?${ORDEN}&q=uncharted`).cancelled).toBe(true);
+    http.expectOne(`${API}/products?${ORDEN}&q=halo`).flush([productoJson(4, { name: 'Halo 5' })]);
+    await fixture.whenStable();
+    expect(botones()).toEqual(['Comprar por 59.90 €']);
+    await responderCategorias();
+  });
+
   it('navega al detalle del producto en el que se hace clic (Green Path)', async () => {
     const navegar = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     http.expectOne(`${API}/products?${ORDEN}`).flush([productoJson(2), productoJson(1)]);

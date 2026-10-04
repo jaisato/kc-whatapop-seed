@@ -1,11 +1,10 @@
-import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter, withComponentInputBinding } from '@angular/router';
+import { Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
+import { appConfig } from './app.config';
 import { BackendUri } from './app.settings';
-import { routes } from './app.routes';
 import { ProductDetailComponent } from './components/product-detail/product-detail.component';
 import { ProductResetComponent } from './components/product-reset/product-reset.component';
 import { API, categoriasJson, productoJson, usuarioJson } from './testing/datos';
@@ -22,9 +21,10 @@ describe('rutas de la aplicación', () => {
     // Los componentes de detalle y reset suben al principio de la página (jsdom no lo implementa).
     vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
     TestBed.configureTestingModule({
+      // La configuración real de la aplicación (router con withComponentInputBinding() y
+      // HttpClient), con el backend HTTP de pruebas y la URL de la API sustituidos.
       providers: [
-        provideRouter(routes, withComponentInputBinding()),
-        provideHttpClient(),
+        ...appConfig.providers,
         provideHttpClientTesting(),
         { provide: BackendUri, useValue: API },
       ],
