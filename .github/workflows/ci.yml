@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build, tests y npm audit
+    name: Build, tests, E2E y npm audit
     runs-on: ubuntu-latest
     env:
       NG_CLI_ANALYTICS: 'false'
@@ -33,5 +33,11 @@ jobs:
       - run: npx ng build
 
       - run: npx ng test --watch=false
+
+      # E2E del diálogo de compra en Chromium (playwright.config.ts arranca ng serve y la API
+      # sobre una copia de db.json).
+      - run: npx playwright install --with-deps chromium
+
+      - run: npx playwright test
 
       - run: npm audit --audit-level=low

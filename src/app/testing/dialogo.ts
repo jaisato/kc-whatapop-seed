@@ -1,7 +1,7 @@
 /**
  * jsdom no implementa los métodos de <dialog>: lo mínimo para probar la lógica de
  * ConfirmDialogComponent, con el evento close encolado como en el navegador. El foco inicial,
- * Escape y el teclado de verdad solo se pueden probar en un navegador.
+ * Escape y el teclado de verdad los cubren las pruebas E2E con Chromium (e2e/compra.e2e.ts).
  */
 export function simularDialogo(): void {
   const proto = HTMLDialogElement.prototype;
