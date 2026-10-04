@@ -1,93 +1,111 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
+import { simularDialogo, siguienteTarea } from '../../testing/dialogo';
 import { ConfirmDialogComponent } from './confirm-dialog.component';
-
-type DialogoDePrueba = HTMLDialogElement & { returnValue: string };
 
 describe('ConfirmDialogComponent', () => {
   let fixture: ComponentFixture<ConfirmDialogComponent>;
-  let dialogo: DialogoDePrueba;
+  let dialogo: HTMLDialogElement;
+  const crear = async () => {
+    const f = TestBed.createComponent(ConfirmDialogComponent);
+    f.componentRef.setInput('header', 'Confirmación de compra');
+    await f.whenStable();
+    return f;
+  };
   const botones = () =>
-    Array.from(dialogo.querySelectorAll('button'), (b) => [b.textContent?.trim(), b.value]);
+    Array.from(dialogo.querySelectorAll<HTMLButtonElement>('.botones button'), (b) =>
+      b.textContent?.trim(),
+    );
+  const boton = (texto: string) =>
+    Array.from(dialogo.querySelectorAll<HTMLButtonElement>('button')).find(
+      (b) => b.textContent?.trim() === texto || b.getAttribute('aria-label') === texto,
+    )!;
 
-  beforeAll(() => {
-    // jsdom no implementa los métodos de <dialog> ni `form method="dialog"`: lo mínimo para
-    // probar la lógica del componente. El comportamiento nativo (clic en los botones, foco
-    // inicial y Escape) no se puede probar con jsdom.
-    const proto = HTMLDialogElement.prototype as Partial<DialogoDePrueba>;
-    proto.showModal ??= function (this: DialogoDePrueba) {
-      this.open = true;
-    };
-    proto.close ??= function (this: DialogoDePrueba, valor?: string) {
-      if (valor !== undefined) {
-        this.returnValue = valor;
-      }
-      this.open = false;
-      this.dispatchEvent(new Event('close'));
-    };
-  });
+  beforeAll(simularDialogo);
 
   beforeEach(async () => {
-    fixture = TestBed.createComponent(ConfirmDialogComponent);
-    fixture.componentRef.setInput('header', 'Confirmación de compra');
-    await fixture.whenStable();
+    fixture = await crear();
     dialogo = fixture.nativeElement.querySelector('dialog');
   });
 
-  it('abre un diálogo modal con la cabecera, el mensaje y los botones Sí y No', async () => {
+  it('abre un diálogo modal con el título, el mensaje y los botones Sí y No', async () => {
     expect(dialogo.open).toBe(false);
 
     fixture.componentInstance.confirm({ message: 'Vas a comprar Uncharted. ¿Estás seguro?' });
     await fixture.whenStable();
 
     expect(dialogo.open).toBe(true);
-    expect(dialogo.querySelector('header')?.textContent).toBe('Confirmación de compra');
+    expect(dialogo.querySelector('h2')?.textContent).toBe('Confirmación de compra');
     expect(dialogo.querySelector('p')?.textContent).toBe('Vas a comprar Uncharted. ¿Estás seguro?');
-    // El value de cada botón es el returnValue con el que <form method="dialog"> cierra.
-    expect(botones()).toEqual([
-      ['Sí', 'accept'],
-      ['No', 'reject'],
-    ]);
+    expect(botones()).toEqual(['Sí', 'No']);
+    expect(boton('Cerrar').textContent?.trim()).toBe('×');
   });
 
-  it('el foco inicial va a «No» (autofocus) y no a «Sí»', () => {
+  it('se etiqueta con el título y se describe con el mensaje, con ids únicos por instancia', async () => {
+    const titulo = dialogo.querySelector('h2')!;
+    const mensaje = dialogo.querySelector('p')!;
+    expect(dialogo.getAttribute('aria-labelledby')).toBe(titulo.id);
+    expect(dialogo.getAttribute('aria-describedby')).toBe(mensaje.id);
+    // Un <h2> y no un <header>, que fuera de un <article> o <section> sería un landmark banner.
+    expect(dialogo.querySelector('header')).toBeNull();
+
+    const otro: HTMLDialogElement = (await crear()).nativeElement.querySelector('dialog');
+    expect(otro.querySelector('h2')!.id).not.toBe(titulo.id);
+    expect(otro.querySelector('p')!.id).not.toBe(mensaje.id);
+  });
+
+  it('el foco inicial va a «No» (autofocus), y a «Sí» si no hay «No»', async () => {
     fixture.componentInstance.confirm({ message: '¿Seguro?' });
+    expect(boton('No').hasAttribute('autofocus')).toBe(true);
+    expect(boton('Sí').hasAttribute('autofocus')).toBe(false);
 
-    const [si, no] = Array.from(dialogo.querySelectorAll('button'));
-    expect(no.hasAttribute('autofocus')).toBe(true);
-    expect(si.hasAttribute('autofocus')).toBe(false);
-  });
-
-  it('con rejectVisible: false solo muestra el botón Sí', async () => {
+    // confirm() pinta antes de abrir, así que showModal() ya ve el autofocus de la nueva.
     fixture.componentInstance.confirm({ message: 'Producto comprado.', rejectVisible: false });
-    await fixture.whenStable();
-
-    expect(botones()).toEqual([['Sí', 'accept']]);
+    expect(botones()).toEqual(['Sí']);
+    expect(boton('Sí').hasAttribute('autofocus')).toBe(true);
   });
 
-  it('llama a accept al cerrarse con el botón Sí', () => {
+  it('«Sí» llama a accept y cierra el diálogo', () => {
     const accept = vi.fn();
     const reject = vi.fn();
     fixture.componentInstance.confirm({ message: '¿Seguro?', accept, reject });
 
-    dialogo.close('accept');
+    boton('Sí').click();
 
     expect(accept).toHaveBeenCalledOnce();
     expect(reject).not.toHaveBeenCalled();
+    expect(dialogo.open).toBe(false);
   });
 
-  it('llama a reject al cerrarse con No o con Escape', () => {
+  it('«No» llama a reject y cierra el diálogo', () => {
+    const accept = vi.fn();
+    const reject = vi.fn();
+    fixture.componentInstance.confirm({ message: '¿Seguro?', accept, reject });
+
+    boton('No').click();
+
+    expect(reject).toHaveBeenCalledOnce();
+    expect(accept).not.toHaveBeenCalled();
+    expect(dialogo.open).toBe(false);
+  });
+
+  it('la «X» y Escape cierran sin llamar a accept ni a reject, como hide() de PrimeNG', async () => {
     const accept = vi.fn();
     const reject = vi.fn();
 
     fixture.componentInstance.confirm({ message: '¿Seguro?', accept, reject });
-    dialogo.close('reject');
-    // Escape cierra sin returnValue; confirm() lo deja vacío al abrir.
+    boton('Cerrar').click();
+    expect(dialogo.open).toBe(false);
+
+    // Escape cierra el <dialog> desde el navegador, sin pasar por los botones.
     fixture.componentInstance.confirm({ message: '¿Seguro?', accept, reject });
     dialogo.close();
+    await siguienteTarea();
+    await fixture.whenStable();
 
-    expect(reject).toHaveBeenCalledTimes(2);
     expect(accept).not.toHaveBeenCalled();
+    expect(reject).not.toHaveBeenCalled();
+    expect(dialogo.querySelector('p')?.textContent).toBe('');
   });
 
   it('permite abrir otra confirmación desde accept', async () => {
@@ -102,12 +120,34 @@ describe('ConfirmDialogComponent', () => {
         }),
     });
 
-    dialogo.close('accept');
+    boton('Sí').click();
+    // Llega el close del primer cierre, con el diálogo ya abierto para la segunda.
+    await siguienteTarea();
     await fixture.whenStable();
 
     expect(dialogo.open).toBe(true);
     expect(dialogo.querySelector('p')?.textContent).toBe('Producto comprado. ¡Enhorabuena!');
-    dialogo.close('accept');
+    boton('Sí').click();
     expect(segunda).toHaveBeenCalledOnce();
+  });
+
+  it('un close atrasado no borra la confirmación que se abrió después', async () => {
+    // Lo que se reproducía en Chrome con `d.close('accept'); botonComprar.click()` en la misma
+    // tarea: el close encolado del primer cierre llegaba con la segunda confirmación ya abierta,
+    // la vaciaba y «Sí» dejaba de hacer nada.
+    const primera = vi.fn();
+    const segunda = vi.fn();
+    fixture.componentInstance.confirm({ message: 'Primera', accept: primera });
+    dialogo.close('accept');
+    fixture.componentInstance.confirm({ message: 'Segunda', accept: segunda });
+
+    await siguienteTarea();
+    await fixture.whenStable();
+
+    expect(dialogo.open).toBe(true);
+    expect(dialogo.querySelector('p')?.textContent).toBe('Segunda');
+    boton('Sí').click();
+    expect(segunda).toHaveBeenCalledOnce();
+    expect(primera).not.toHaveBeenCalled();
   });
 });

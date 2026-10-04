@@ -2,6 +2,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  computed,
   inject,
   input,
   signal,
@@ -17,10 +18,13 @@ export interface Confirmation {
   rejectVisible?: boolean;
 }
 
+let siguienteId = 0;
+
 /**
  * Diálogo modal de confirmación con el elemento nativo `<dialog>`. Sustituye a
- * `<p-confirmDialog>` de PrimeNG 1.x: `showModal()` da el fondo, la captura del foco y el
- * cierre con Escape (que cuenta como «No»).
+ * `<p-confirmDialog>` de PrimeNG 1.1.4 y se comporta igual: «Sí» llama a `accept`, «No» llama
+ * a `reject`, y la «X» de la cabecera y Escape cierran sin llamar a ninguno de los dos.
+ * `showModal()` añade el fondo, la captura del foco y el cierre con Escape.
  */
 @Component({
   selector: 'confirm-dialog',
@@ -32,31 +36,57 @@ export class ConfirmDialogComponent {
 
   readonly header = input('');
 
+  /** Prefijo de los id del título y del mensaje, único por instancia. */
+  protected readonly id = `confirm-dialog-${siguienteId++}`;
   protected readonly confirmation = signal<Confirmation | null>(null);
+  protected readonly rejectVisible = computed(() => this.confirmation()?.rejectVisible !== false);
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('dialog');
 
   confirm(confirmation: Confirmation): void {
     this.confirmation.set(confirmation);
     // Se pinta antes de abrir para que showModal() enfoque el botón con autofocus de esta
-    // confirmación, y no los botones de la anterior.
+    // confirmación («No», o «Sí» si no hay «No»).
     this.cdr.detectChanges();
     const dialog = this.dialog().nativeElement;
-    dialog.returnValue = '';
-    if (!dialog.open) {
-      dialog.showModal();
+    // Una confirmación que llega con el diálogo abierto sustituye a la anterior, como en
+    // PrimeNG; se reabre para que el foco inicial sea el de la nueva.
+    if (dialog.open) {
+      dialog.close();
+    }
+    dialog.showModal();
+  }
+
+  /** «Sí». */
+  protected accept(): void {
+    this.resolve()?.accept?.();
+  }
+
+  /** «No». */
+  protected reject(): void {
+    this.resolve()?.reject?.();
+  }
+
+  /** La «X»: como `hide()` de PrimeNG, cierra sin aceptar ni rechazar. */
+  protected dismiss(): void {
+    this.resolve();
+  }
+
+  /**
+   * El navegador encola el evento `close`, así que puede llegar cuando ya se ha abierto otra
+   * confirmación: si el diálogo vuelve a estar abierto, el evento es de la anterior y se ignora.
+   * Si no, el diálogo se ha cerrado sin pasar por los botones (Escape): no se llama a nada.
+   */
+  protected onClose(): void {
+    if (!this.dialog().nativeElement.open) {
+      this.confirmation.set(null);
     }
   }
 
-  /** `close` llega al pulsar un botón del `<form method="dialog">` o con Escape. */
-  protected onClose(): void {
+  /** Cierra el diálogo y devuelve la confirmación abierta en el momento del clic. */
+  private resolve(): Confirmation | null {
     const confirmation = this.confirmation();
-    const accepted = this.dialog().nativeElement.returnValue === 'accept';
-    // Se limpia antes de llamar al callback, por si este abre otra confirmación.
     this.confirmation.set(null);
-    if (accepted) {
-      confirmation?.accept?.();
-    } else {
-      confirmation?.reject?.();
-    }
+    this.dialog().nativeElement.close();
+    return confirmation;
   }
 }
