@@ -4,7 +4,8 @@
   <form method="dialog">
     <button type="submit" value="accept" class="button">Sí</button>
     @if (confirmation()?.rejectVisible !== false) {
-      <button type="submit" value="reject" class="secondary button">No</button>
+      <!-- showModal() enfoca «No»: un segundo Enter o Espacio sobre «Comprar» no compra. -->
+      <button type="submit" value="reject" class="secondary button" autofocus>No</button>
     }
   </form>
 </dialog>

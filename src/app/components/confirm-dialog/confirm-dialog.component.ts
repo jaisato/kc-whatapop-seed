@@ -1,4 +1,12 @@
-import { Component, ElementRef, input, signal, viewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  input,
+  signal,
+  viewChild,
+} from '@angular/core';
 
 /** Lo mismo que aceptaba `ConfirmationService.confirm()` de PrimeNG y usa esta aplicación. */
 export interface Confirmation {
@@ -20,6 +28,8 @@ export interface Confirmation {
   styleUrl: './confirm-dialog.component.css',
 })
 export class ConfirmDialogComponent {
+  private readonly cdr = inject(ChangeDetectorRef);
+
   readonly header = input('');
 
   protected readonly confirmation = signal<Confirmation | null>(null);
@@ -27,6 +37,9 @@ export class ConfirmDialogComponent {
 
   confirm(confirmation: Confirmation): void {
     this.confirmation.set(confirmation);
+    // Se pinta antes de abrir para que showModal() enfoque el botón con autofocus de esta
+    // confirmación, y no los botones de la anterior.
+    this.cdr.detectChanges();
     const dialog = this.dialog().nativeElement;
     dialog.returnValue = '';
     if (!dialog.open) {

@@ -12,8 +12,8 @@ describe('ConfirmDialogComponent', () => {
 
   beforeAll(() => {
     // jsdom no implementa los métodos de <dialog> ni `form method="dialog"`: lo mínimo para
-    // probar la lógica del componente. El comportamiento nativo (clic en los botones,
-    // Escape) lo cubre la prueba E2E en Chromium.
+    // probar la lógica del componente. El comportamiento nativo (clic en los botones, foco
+    // inicial y Escape) no se puede probar con jsdom.
     const proto = HTMLDialogElement.prototype as Partial<DialogoDePrueba>;
     proto.showModal ??= function (this: DialogoDePrueba) {
       this.open = true;
@@ -48,6 +48,14 @@ describe('ConfirmDialogComponent', () => {
       ['Sí', 'accept'],
       ['No', 'reject'],
     ]);
+  });
+
+  it('el foco inicial va a «No» (autofocus) y no a «Sí»', () => {
+    fixture.componentInstance.confirm({ message: '¿Seguro?' });
+
+    const [si, no] = Array.from(dialogo.querySelectorAll('button'));
+    expect(no.hasAttribute('autofocus')).toBe(true);
+    expect(si.hasAttribute('autofocus')).toBe(false);
   });
 
   it('con rejectVisible: false solo muestra el botón Sí', async () => {
