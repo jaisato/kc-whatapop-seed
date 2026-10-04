@@ -1,11 +1,11 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { DecimalPipe, NgIf } from '@angular/common';
+import { Component, Input, output } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 
 import { Product } from '../../models/product';
 
 @Component({
   selector: 'product',
-  imports: [DecimalPipe, NgIf],
+  imports: [DecimalPipe],
   templateUrl: './product.component.html',
 })
 export class ProductComponent {
@@ -22,7 +22,7 @@ export class ProductComponent {
   | mismo.                                                           |
   |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-  @Output() onProductSelected: EventEmitter<Product> = new EventEmitter();
+  readonly onProductSelected = output<Product>();
   notifyProductSelected(data: Product): void {
     this.onProductSelected.emit(data);
   }

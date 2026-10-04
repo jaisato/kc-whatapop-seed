@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
@@ -7,10 +7,8 @@ import { BackendUri } from '../app.settings';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
-  constructor(
-    @Inject(BackendUri) private _backendUri: string,
-    private _http: HttpClient,
-  ) {}
+  private _backendUri = inject(BackendUri);
+  private _http = inject(HttpClient);
 
   getUser(userId: number): Observable<User> {
     return this._http

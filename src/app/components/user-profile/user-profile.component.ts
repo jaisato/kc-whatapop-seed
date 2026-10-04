@@ -1,4 +1,12 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, signal } from '@angular/core';
+import {
+  Component,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  signal,
+  input,
+  inject,
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { User } from '../../models/user';
@@ -10,12 +18,12 @@ import { UserService } from '../../services/user.service';
   styleUrl: './user-profile.component.css',
 })
 export class UserProfileComponent implements OnChanges, OnDestroy {
-  @Input() userId?: number;
+  private _userService = inject(UserService);
+
+  readonly userId = input<number | undefined>(undefined);
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   readonly user = signal<User | undefined>(undefined);
   private _userSubscription?: Subscription;
-
-  constructor(private _userService: UserService) {}
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['userId'] && changes['userId']['currentValue']) {

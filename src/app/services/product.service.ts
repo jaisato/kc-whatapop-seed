@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 
@@ -8,10 +8,8 @@ import { BackendUri } from '../app.settings';
 
 @Injectable({ providedIn: 'root' })
 export class ProductService {
-  constructor(
-    @Inject(BackendUri) private _backendUri: string,
-    private _http: HttpClient,
-  ) {}
+  private _backendUri = inject(BackendUri);
+  private _http = inject(HttpClient);
 
   getProducts(filter: ProductFilter | null = null): Observable<Product[]> {
     /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|

@@ -1,49 +1,45 @@
-<div class="row" *ngIf="product">
-  <div class="medium-4 columns">
-    <img [src]="getImageSrc()" class="thumbnail" />
-  </div>
-  <div class="medium-8 columns">
-    <h3>{{ product.name }}</h3>
-    <p>
-      <span
-        class="label"
-        [ngClass]="{
-          info: product.category.id === 1,
-          alert: product.category.id === 2,
-          warning: product.category.id === 3,
-        }"
-      >
-        {{ product.category.name }}
-      </span>
-
+@if (product) {
+  <div class="row">
+    <div class="medium-4 columns">
+      <img [src]="getImageSrc()" class="thumbnail" />
+    </div>
+    <div class="medium-8 columns">
+      <h3>{{ product.name }}</h3>
+      <p>
+        <span
+          class="label"
+          [class]="{
+            info: product.category.id === 1,
+            alert: product.category.id === 2,
+            warning: product.category.id === 3,
+          }"
+        >
+          {{ product.category.name }}
+        </span>
+        <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+        | Blue Path                                                        |
+        |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
+        | Una vez tengas creado el Pipe PublicationDatePipe, úsalo con la  |
+        | fecha de publicación.                                            |
+        |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+        <span>Publicado {{ product.publishedDate | LapseOfTime }}</span>
+      </p>
+      <p [innerHtml]="product.description"></p>
+      <user-profile [userId]="product.seller.id"></user-profile>
       <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-      | Blue Path                                                        |
+      | Purple Path                                                      |
       |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-      | Una vez tengas creado el Pipe PublicationDatePipe, úsalo con la  |
-      | fecha de publicación.                                            |
+      | Aplica el siguiente formato al precio del producto:              |
+      |   - 1 dígito mínimo (parte entera)                               |
+      |   - 2 dígitos mínimo y máximo (parte decimal)                    |
       |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-
-      <span>Publicado {{ product.publishedDate | LapseOfTime }}</span>
-    </p>
-    <p [innerHtml]="product.description"></p>
-    <user-profile [userId]="product.seller.id"></user-profile>
-
-    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-    | Purple Path                                                      |
-    |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
-    | Aplica el siguiente formato al precio del producto:              |
-    |   - 1 dígito mínimo (parte entera)                               |
-    |   - 2 dígitos mínimo y máximo (parte decimal)                    |
-    |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
-
-    <button
-      *ngIf="product.state === 'selling'"
-      (click)="showPurchaseWarning(product)"
-      class="button large expanded"
-    >
-      Comprar por {{ product.price | number: '1.2-2' }} €
-    </button>
-    <button (click)="goBack()" class="warning button expanded">Volver</button>
+      @if (product.state === 'selling') {
+        <button (click)="showPurchaseWarning(product)" class="button large expanded">
+          Comprar por {{ product.price | number: '1.2-2' }} €
+        </button>
+      }
+      <button (click)="goBack()" class="warning button expanded">Volver</button>
+    </div>
+    <confirm-dialog header="Confirmación de compra"></confirm-dialog>
   </div>
-  <confirm-dialog header="Confirmación de compra"></confirm-dialog>
-</div>
+}

@@ -1,5 +1,5 @@
-import { Component, Input, OnDestroy, OnInit, viewChild } from '@angular/core';
-import { DecimalPipe, NgClass, NgIf } from '@angular/common';
+import { Component, Input, OnDestroy, OnInit, viewChild, inject } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -17,29 +17,20 @@ import { UserProfileComponent } from '../user-profile/user-profile.component';
 |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
 @Component({
-  imports: [
-    ConfirmDialogComponent,
-    DecimalPipe,
-    NgClass,
-    NgIf,
-    PublicationDatePipe,
-    UserProfileComponent,
-  ],
+  imports: [ConfirmDialogComponent, DecimalPipe, PublicationDatePipe, UserProfileComponent],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.css',
 })
 export class ProductDetailComponent implements OnDestroy, OnInit {
+  private _productService = inject(ProductService);
+  private _router = inject(Router);
+
   // Producto del resolver de la ruta (productDetailResolver), que
   // withComponentInputBinding() entrega como input.
   @Input() product?: Product;
   private _productSubscription?: Subscription;
   // Sustituye a ConfirmationService y <p-confirmDialog> de PrimeNG.
   private readonly _confirmDialog = viewChild.required(ConfirmDialogComponent);
-
-  constructor(
-    private _productService: ProductService,
-    private _router: Router,
-  ) {}
 
   ngOnInit(): void {
     window.scrollTo(0, 0);

@@ -1,16 +1,18 @@
-import { Component, OnDestroy, OnInit, input, linkedSignal } from '@angular/core';
-import { NgFor, NgIf } from '@angular/common';
+import { Component, OnDestroy, OnInit, input, linkedSignal, inject } from '@angular/core';
+
 import { Subject, switchMap } from 'rxjs';
 
 import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
 
 @Component({
-  imports: [NgFor, NgIf],
+  imports: [],
   templateUrl: './product-reset.component.html',
   styleUrl: './product-reset.component.css',
 })
 export class ProductResetComponent implements OnDestroy, OnInit {
+  private _productService = inject(ProductService);
+
   // Productos vendidos del resolver de la ruta (soldProductsResolver), que
   // withComponentInputBinding() entrega como input.
   readonly products = input.required<Product[]>();
@@ -18,8 +20,6 @@ export class ProductResetComponent implements OnDestroy, OnInit {
   // signal. La lista parte de la del resolver y se actualiza al reponer cada producto.
   protected readonly _products = linkedSignal(() => this.products());
   private _productStream$: Subject<number> = new Subject<number>();
-
-  constructor(private _productService: ProductService) {}
 
   ngOnInit(): void {
     this._productStream$

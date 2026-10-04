@@ -1,17 +1,20 @@
 <div class="row">
-  <div
-    *ngIf="_products().length > 0"
-    class="small-12 medium-8 medium-offset-2 large-6 large-offset-3 columns"
-  >
-    <ul>
-      <li *ngFor="let product of _products()">
-        <button (click)="setProductAvailable(product.id)" class="button expanded">
-          Poner {{ product.name }} a la venta
-        </button>
-      </li>
-    </ul>
-  </div>
-  <div *ngIf="_products().length === 0" class="text-center">
-    <span>Todos los productos están a la venta.</span>
-  </div>
+  @if (_products().length > 0) {
+    <div class="small-12 medium-8 medium-offset-2 large-6 large-offset-3 columns">
+      <ul>
+        @for (product of _products(); track product) {
+          <li>
+            <button (click)="setProductAvailable(product.id)" class="button expanded">
+              Poner {{ product.name }} a la venta
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+  @if (_products().length === 0) {
+    <div class="text-center">
+      <span>Todos los productos están a la venta.</span>
+    </div>
+  }
 </div>
