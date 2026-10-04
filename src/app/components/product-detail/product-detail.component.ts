@@ -20,6 +20,9 @@ import { UserProfileComponent } from '../user-profile/user-profile.component';
   imports: [ConfirmDialogComponent, DecimalPipe, PublicationDatePipe, UserProfileComponent],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.css',
+  // La etiqueta de la categoría y «Publicado hace…» son inline y los separa el salto de línea
+  // de la plantilla, como en Angular 2. Desde Angular 6 ese espacio se elimina por defecto.
+  preserveWhitespaces: true,
 })
 export class ProductDetailComponent implements OnDestroy, OnInit {
   private readonly _productService = inject(ProductService);
