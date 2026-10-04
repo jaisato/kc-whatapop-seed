@@ -5,11 +5,14 @@ práctica de HTML5, CSS3 y Angular del Mobile Startup Engineering de KeepCoding 
 ([vermicida](https://github.com/vermicida)). Incluye los Paths obligatorios resueltos y está migrado de
 Angular 2 (SystemJS, `tsc` y lite-server) a Angular 22 con Angular CLI.
 
-El enunciado original de la práctica sigue más abajo, en [La práctica](#la-práctica).
+El enunciado de la práctica sigue más abajo, en [La práctica](#la-práctica). Es el original de Diego
+Herrera adaptado a esta versión: rutas de `src/app/`, resolvers funcionales (`ResolveFn`), `output()` en
+lugar de `@Output()` y el Blue Path sin Moment.js.
 
 ## Requisitos
 
-- Node.js 24 (versión fijada en `.nvmrc`). Angular 22 admite `^22.22.3 || ^24.15.0`.
+- Node.js 24.21.0, la versión de `.nvmrc` y la que usa el CI. Angular 22 admite
+  `^22.22.3 || ^24.15.0 || >=26.0.0`, el rango que declara `engines` en `package.json`.
 - npm (el que trae Node 24).
 
 ## Puesta en marcha
@@ -24,9 +27,15 @@ npm start
 
 `npm start` lanza con `concurrently` dos procesos y para los dos con Ctrl+C:
 
-- `npm run api`: json-server 0.17.4 en <http://localhost:5000> (`/products`, `/categories` y
-  `/users`), a partir de `db.json`. Las compras y los resets de productos se guardan en `db.json`.
+- `npm run api`: la API en <http://localhost:5000> (`/products`, `/categories` y `/users`), a partir
+  de `db.json`. Es json-server 0.17.4 usado como módulo desde `server.mjs`, para que solo acepte
+  peticiones CORS de la aplicación (`http://localhost:4200`; si cambias el puerto de `ng serve`, cambia
+  también `ORIGEN_PERMITIDO`). Las compras y los resets de productos se guardan en `db.json`.
 - `ng serve`: la aplicación en <http://localhost:4200>.
+
+`npm ci` no ejecuta los scripts de instalación de las dependencias (`ignore-scripts=true` en `.npmrc`):
+ninguna los necesita, porque los binarios de esbuild, lmdb, msgpackr-extract y @parcel/watcher llegan
+precompilados como dependencias opcionales.
 
 | Script                      | Qué hace                                                        |
 | --------------------------- | --------------------------------------------------------------- |
@@ -35,6 +44,12 @@ npm start
 | `npm run build`             | Build de producción en `dist/kc-whatapop-seed/browser/`.        |
 | `npm test`                  | Pruebas unitarias con Vitest (en modo _watch_ en una terminal). |
 | `npm test -- --watch=false` | Una sola pasada de las pruebas (lo que ejecuta el CI).          |
+| `npm run e2e`               | Pruebas E2E del diálogo de compra con Playwright y Chromium.    |
+
+`npm run e2e` arranca `ng serve` y la API sobre una copia de `db.json` (en `tmp/e2e/`), así que las
+compras de las pruebas no tocan el original. Necesita el puerto 5000 libre y Chromium: la primera vez,
+`npx playwright install chromium`, o `CHROME_PATH=/ruta/a/chrome npm run e2e` con un Chrome ya
+instalado.
 
 ## Notas de la versión con Angular 22
 
@@ -45,20 +60,49 @@ npm start
   eventos de las plantillas. Por eso el estado que se rellena al llegar una respuesta HTTP (dentro de un
   `subscribe()`) se guarda en signals.
 - El diálogo de confirmación de compra es un `<dialog>` nativo (`ConfirmDialogComponent`) en lugar de
-  `<p-confirmDialog>` de PrimeNG, y `PublicationDatePipe` usa `Intl.RelativeTimeFormat` en lugar de
-  Moment.js.
-- Los estilos globales (Foundation) se declaran en `angular.json`. Se usa `foundation-float.css`, la
-  variante de Foundation 6 con la rejilla flotante (`row`, `columns`, `small-up-N`) que usan las
-  plantillas. Las imágenes están en `public/images/`, así que las rutas `images/...` de `db.json` siguen
+  `<p-confirmDialog>` de PrimeNG 1.1.4, con el mismo comportamiento: «Sí» acepta, «No» rechaza, y la
+  «X» de la cabecera y Escape cierran sin hacer nada (en el aviso «Producto comprado», sin volver a
+  `/products`). Diferencias:
+  - Los botones dicen «Sí» y «No»; PrimeNG ponía «Yes» y «No», en inglés, con iconos de Font Awesome.
+  - Al abrirse, el foco pasa a «No» (a «Sí» en el aviso, que no tiene «No»). PrimeNG lo dejaba en
+    «Comprar», detrás del diálogo. Así, un segundo Enter o Espacio no compra.
+  - El título es un `<h2>` que da nombre al diálogo, y el mensaje, su descripción.
+  - La cabecera es azul, con los colores de Foundation; la de PrimeNG era gris.
+- `PublicationDatePipe` reproduce sin Moment.js `moment(fecha).fromNow()` con el locale `es`: los
+  mismos umbrales (45 s, 45 min, 22 h, 26 días y 11 meses), la diferencia en meses de calendario y los
+  mismos textos («hace unos segundos», «hace un mes», «en 2 días»…). Solo cambia una fecha no válida:
+  moment devolvía «Invalid date» y el pipe devuelve una cadena vacía.
+- Tipografía: Foundation usa Roboto en su pila de fuentes («Helvetica Neue», Helvetica, Roboto, Arial),
+  y antes la cargaba el tema de PrimeNG. Ahora llega de `@fontsource/roboto`, solo el peso 400 y el
+  subconjunto latino, como entonces. Sin ella, en Windows y Linux se usaba Arial o DejaVu y cambiaba la
+  maquetación. A diferencia del tema de PrimeNG, no busca antes una Roboto instalada en el sistema y
+  usa `font-display: swap`.
+- Los estilos globales (Foundation y Roboto) se declaran en `angular.json`. Se usa `foundation-float.css`,
+  la variante de Foundation 6 con la rejilla flotante (`row`, `columns`, `small-up-N`) que usan las
+  plantillas. Frente a Foundation 6.3.0, la versión que se instalaba en 2016, cambian dos cosas en estas
+  páginas: desde la 6.4 las filas anidadas no tienen ancho máximo, así que la colección y el detalle son
+  30 px más anchos (1230 px en lugar de 1200 px en una ventana de 1280 px), y los botones y campos de
+  formulario heredan la fuente de la página en lugar de usar la sans-serif del sistema.
+- `ProductDetailComponent` usa `preserveWhitespaces: true`, como Angular 2, para que la etiqueta de la
+  categoría no quede pegada a «Publicado hace…».
+- La búsqueda por texto codifica el `+` (`c++` se envía como `q=c%2B%2B`). Con `@angular/http` se enviaba
+  `q=c++` y json-server buscaba «c» seguida de dos espacios.
+- Las imágenes están en `public/images/`, así que las rutas `images/...` de `db.json` siguen
   funcionando.
 - json-server está fijado a 0.17.4: la rama 1.0 (beta) cambia la sintaxis de `_sort`, `_order` y `q`.
 - Dependabot propone cada semana las actualizaciones de npm (todo `@angular/*` en una sola PR) y cada mes
   las de las acciones de GitHub. Las versiones mayores de Angular se hacen con `ng update`, que también
-  aplica las migraciones de código.
+  aplica las migraciones de código. Por eso Dependabot tampoco propone las mayores de vitest, tslib y
+  rxjs, que se salen de los peer de Angular 22.
+- Licencia MIT ([LICENSE](LICENSE)), la que declaraba el proyecto original: © 2016 Diego Herrera.
 
 ## La práctica
 
 **Whatapop** es un _amago_ de clon de [Wallapop](http://es.wallapop.com). Sus pretensiones son mucho más humildes que las del conocido portal, pero a la vez contribuyen a una grandiosa causa: que aprendas a familiarizarte con HTML5, CSS3 y Angular.
+
+> Este es el enunciado original, adaptado a la versión con Angular 22: se actualizan las rutas de los
+> documentos y las referencias a APIs que ya no existen (`app.module.ts`, `Resolve`, `@Output()` y
+> Moment.js).
 
 Lee detenidamente estas instrucciones **hasta el final**, las vas a necesitar para completar la práctica.
 
@@ -154,7 +198,7 @@ Qué practicamos:
 
 #### Blue Path: Apañando la fecha de publicación
 
-¿Te has fijado en que la fecha de publicación -en la vista en detalle- de los productos de **Whatapop** no se muestran correctamente?. Ahora mismo aparecen con formato de timestamp, lo cual carece de valor para los usuarios. Lo que debes hacer es indicar qué tiempo ha transcurrido desde que el producto se publicó. Puedes hacerlo muy fácilmente con un Pipe y la librería [Moment.js](http://momentjs.com/) (en esta versión, con [`Intl.RelativeTimeFormat`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/Intl/RelativeTimeFormat), sin dependencias).
+¿Te has fijado en que la fecha de publicación -en la vista en detalle- de los productos de **Whatapop** no se muestran correctamente?. Ahora mismo aparecen con formato de timestamp, lo cual carece de valor para los usuarios. Lo que debes hacer es indicar qué tiempo ha transcurrido desde que el producto se publicó. Puedes hacerlo muy fácilmente con un Pipe y la librería [Moment.js](http://momentjs.com/) (en esta versión, el pipe reproduce `moment(fecha).fromNow()` sin dependencias).
 
 Dependencias:
 
