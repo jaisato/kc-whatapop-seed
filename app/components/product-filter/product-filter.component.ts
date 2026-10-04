@@ -13,7 +13,10 @@ import { ProductFilter } from "../../models/product-filter";
 export class ProductFilterComponent implements OnInit, OnDestroy {
 
     @Output() onSearch: EventEmitter<ProductFilter> = new EventEmitter();
-    private _productFilter: ProductFilter = {};
+    // category starts as "" so the "Todas las categorías" option is the one
+    // shown selected; without it there was no way back to an unfiltered
+    // search once a category had been picked.
+    private _productFilter: ProductFilter = { category: "" };
     private _categories: Category[];
     private _categoriesSubscription: Subscription;
 

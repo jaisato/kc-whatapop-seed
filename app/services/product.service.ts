@@ -52,10 +52,13 @@ export class ProductService {
         if (filter) {
             let searchParams = new URLSearchParams();
 
-            if (filter.text !== null) {
+            // URLSearchParams.append already drops undefined/null, but not "":
+            // the "Todas las categorías" option is "", and json-server compares
+            // `category.id=` literally, so it matched no product at all.
+            if (filter.text) {
                 searchParams.append('q', filter.text);
             }
-            if (filter.category !== null) {
+            if (filter.category) {
                 searchParams.append('category.id', filter.category);
             }
 
@@ -74,7 +77,7 @@ export class ProductService {
         |       state=x (siendo x el estado)                               |
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-            if (filter.state !== null) {
+            if (filter.state) {
                 searchParams.append('state', filter.state);
             }
 
