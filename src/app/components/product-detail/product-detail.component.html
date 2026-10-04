@@ -24,6 +24,9 @@
         |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
         <span>Publicado {{ product.publishedDate | LapseOfTime }}</span>
       </p>
+      <!-- La descripción de db.json es HTML (párrafos <p>), por eso se usa innerHtml y no
+           interpolación. Angular la sanea antes de insertarla: quita scripts, atributos on* y
+           URL javascript:. -->
       <p [innerHtml]="product.description"></p>
       <user-profile [userId]="product.seller.id"></user-profile>
       <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|
