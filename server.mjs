@@ -13,7 +13,27 @@ const fichero = process.argv[2] ?? 'db.json';
 
 const app = jsonServer.create();
 
+// Nombres con los que se puede llegar a la API. Comprobar Host frena el DNS rebinding: una web
+// cuyo dominio pasa a resolver a 127.0.0.1 deja de ser de otro origen para el navegador y podría
+// leer y escribir db.json sin pasar por CORS.
+const HOSTS_PERMITIDOS = new Set([`localhost:${PUERTO}`, `127.0.0.1:${PUERTO}`]);
+const METODOS_SEGUROS = new Set(['GET', 'HEAD', 'OPTIONS']);
+
 app.use((req, res, next) => {
+  if (!HOSTS_PERMITIDOS.has(req.headers.host ?? '')) {
+    res.statusCode = 403;
+    res.end('Host no permitido');
+    return;
+  }
+  // CORS solo impide leer la respuesta: un formulario de otra web (POST urlencoded, sin
+  // preflight) llegaba igualmente al router y creaba o cambiaba registros de db.json (CSRF).
+  // Las escrituras con un Origin distinto del de `ng serve` se rechazan antes de tocar nada.
+  const origen = req.headers.origin;
+  if (origen && origen !== ORIGEN_PERMITIDO && !METODOS_SEGUROS.has(req.method)) {
+    res.statusCode = 403;
+    res.end('Origen no permitido');
+    return;
+  }
   res.setHeader('Vary', 'Origin');
   if (req.headers.origin === ORIGEN_PERMITIDO) {
     res.setHeader('Access-Control-Allow-Origin', ORIGEN_PERMITIDO);
