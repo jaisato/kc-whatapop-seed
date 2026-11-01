@@ -17,7 +17,7 @@ export class ProductFilterComponent {
 
   readonly onSearch = output<ProductFilter>();
   // protected: la plantilla los lee (con strictTemplates no puede leer campos private).
-  protected _productFilter: ProductFilter = {};
+  protected _productFilter: ProductFilter = { category: '' };
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   protected readonly _categories = signal<Category[]>([]);
 

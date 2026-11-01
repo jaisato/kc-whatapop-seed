@@ -1,7 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { Subject, startWith, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, startWith, switchMap } from 'rxjs';
 
 import { Product } from '../../models/product';
 import { ProductComponent } from '../product/product.component';
@@ -21,6 +21,8 @@ export class ProductsCollectionComponent {
   // Sin zone.js, lo que se asigna dentro de un subscribe() solo se repinta si es un signal.
   protected readonly _products = signal<Product[] | undefined>(undefined);
   private readonly _filterStream$ = new Subject<ProductFilter | null>();
+  // Si la última búsqueda ha fallado (API caída, error del servidor).
+  protected readonly _loadError = signal(false);
 
   constructor() {
     // La primera búsqueda, sin filtro, y después una por cada «Buscar». switchMap, como antes:
@@ -29,10 +31,22 @@ export class ProductsCollectionComponent {
     this._filterStream$
       .pipe(
         startWith(null),
-        switchMap((filter: ProductFilter | null) => this._productService.getProducts(filter)),
+        // El error se captura dentro del switchMap: si llegara al stream exterior lo
+        // completaría, y tras un solo fallo «Buscar» dejaba de hacer nada para siempre.
+        switchMap((filter: ProductFilter | null) =>
+          this._productService.getProducts(filter).pipe(
+            catchError(() => {
+              this._loadError.set(true);
+              return EMPTY;
+            }),
+          ),
+        ),
         takeUntilDestroyed(),
       )
-      .subscribe((products: Product[]) => this._products.set(products));
+      .subscribe((products: Product[]) => {
+        this._loadError.set(false);
+        this._products.set(products);
+      });
   }
 
   filterCollection(filter: ProductFilter | null): void {

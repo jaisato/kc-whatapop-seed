@@ -65,6 +65,12 @@ describe('ProductService', () => {
     reqs.forEach((req) => req.flush([]));
   });
 
+  it('tampoco envía los filtros vacíos (texto borrado, «Todas las categorías»)', () => {
+    service.getProducts({ text: '', category: '', state: '  ' }).subscribe();
+
+    http.expectOne(`${API}/products?${ORDEN}`).flush([]);
+  });
+
   it('pide un producto por su id', () => {
     let producto: Product | undefined;
     service.getProduct(7).subscribe((respuesta) => (producto = respuesta));

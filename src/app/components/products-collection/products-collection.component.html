@@ -2,6 +2,11 @@
   <div class="small-12 large-12 columns">
     <product-filter (onSearch)="filterCollection($event)"></product-filter>
   </div>
+  @if (_loadError()) {
+    <div class="text-center" role="alert">
+      <span>No se han podido cargar los productos. Inténtalo de nuevo.</span>
+    </div>
+  }
   @if (_products()?.length) {
     <div class="small-up-2 medium-up-4 large-up-6">
       <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~|

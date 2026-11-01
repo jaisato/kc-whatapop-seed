@@ -82,4 +82,22 @@ describe('ProductResetComponent', () => {
 
     expect(botones()).toEqual(['Poner Vendido 3 a la venta']);
   });
+
+  it('si la reposición falla, el producto sigue en la lista y se puede reintentar', async () => {
+    pulsar(0);
+    http.expectOne(`${API}/products/3`).flush('caída', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+
+    expect(botones()).toEqual(['Poner Vendido 3 a la venta', 'Poner Vendido 5 a la venta']);
+    expect(elemento.querySelector('[role="alert"]')?.textContent).toContain(
+      'No se ha podido poner el producto a la venta',
+    );
+
+    pulsar(0);
+    http.expectOne(`${API}/products/3`).flush(productoJson(3));
+    await fixture.whenStable();
+
+    expect(botones()).toEqual(['Poner Vendido 5 a la venta']);
+    expect(elemento.querySelector('[role="alert"]')).toBeNull();
+  });
 });
