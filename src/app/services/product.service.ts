@@ -6,6 +6,10 @@ import { Product } from '../models/product';
 import { ProductFilter } from '../models/product-filter';
 import { BackendUri } from '../app.settings';
 
+// Un filtro con valor: ni undefined, ni null, ni una cadena vacía o solo de espacios.
+const tieneValor = (valor: string | null | undefined): valor is string =>
+  valor != null && valor.trim() !== '';
+
 @Injectable({ providedIn: 'root' })
 export class ProductService {
   private readonly _backendUri = inject(BackendUri);
@@ -46,11 +50,15 @@ export class ProductService {
     // Los campos sin valor (undefined o null) no se envían, igual que hacía
     // URLSearchParams.append() de @angular/http. HttpParams, en cambio, los
     // serializaría como "q=undefined" o "category.id=null".
+    //
+    // Tampoco la cadena vacía: es lo que queda en el filtro al borrar el texto o
+    // al elegir «Todas las categorías», y "category.id=" pide a json-server los
+    // productos cuya categoría es '', es decir, ninguno.
     if (filter) {
-      if (filter.text != null) {
+      if (tieneValor(filter.text)) {
         params = params.append('q', filter.text);
       }
-      if (filter.category != null) {
+      if (tieneValor(filter.category)) {
         params = params.append('category.id', filter.category);
       }
 
@@ -68,7 +76,7 @@ export class ProductService {
       |       state=x (siendo x el estado)                               |
       |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-      if (filter.state != null) {
+      if (tieneValor(filter.state)) {
         params = params.append('state', filter.state);
       }
     }

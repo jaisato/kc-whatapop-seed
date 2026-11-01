@@ -1,6 +1,6 @@
-import { Component, OnInit, inject, input, linkedSignal } from '@angular/core';
+import { Component, OnInit, inject, input, linkedSignal, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, switchMap } from 'rxjs';
 
 import { Product } from '../../models/product';
 import { ProductService } from '../../services/product.service';
@@ -19,16 +19,30 @@ export class ProductResetComponent implements OnInit {
   // signal. La lista parte de la del resolver y se actualiza al reponer cada producto.
   protected readonly _products = linkedSignal(() => this.products());
   private readonly _productStream$ = new Subject<number>();
+  // Si la última reposición ha fallado; el producto sigue en la lista para reintentar.
+  protected readonly _resetError = signal(false);
 
   constructor() {
     // switchMap, como antes. takeUntilDestroyed() deshace la suscripción, y cancela la petición
     // en curso, al destruir el componente; antes ngOnDestroy solo cerraba el Subject.
     this._productStream$
       .pipe(
-        switchMap((productId: number) => this._productService.setProductAvailable(productId)),
+        // Como en la colección: un error que llegase al stream exterior lo completaría y
+        // ningún botón volvería a funcionar hasta recargar.
+        switchMap((productId: number) =>
+          this._productService.setProductAvailable(productId).pipe(
+            catchError(() => {
+              this._resetError.set(true);
+              return EMPTY;
+            }),
+          ),
+        ),
         takeUntilDestroyed(),
       )
-      .subscribe((product: Product) => this._updateProduct(product));
+      .subscribe((product: Product) => {
+        this._resetError.set(false);
+        this._updateProduct(product);
+      });
   }
 
   ngOnInit(): void {

@@ -54,7 +54,7 @@ describe('ProductsCollectionComponent', () => {
     await responderCategorias();
     expect(
       Array.from(elemento.querySelectorAll('product-filter option'), (o) => o.textContent?.trim()),
-    ).toEqual(['Videojuegos', 'Películas', 'Libros']);
+    ).toEqual(['Todas las categorías', 'Videojuegos', 'Películas', 'Libros']);
   });
 
   it('vuelve a pedir los productos con el filtro al pulsar Buscar', async () => {
@@ -105,5 +105,45 @@ describe('ProductsCollectionComponent', () => {
 
     expect(navegar).toHaveBeenCalledWith(['/products', 1]);
     await responderCategorias();
+  });
+
+  it('si una búsqueda falla lo indica y la siguiente sigue funcionando', async () => {
+    http.expectOne(`${API}/products?${ORDEN}`).flush('caída', { status: 500, statusText: 'Error' });
+    await fixture.whenStable();
+    expect(elemento.querySelector('[role="alert"]')?.textContent).toContain(
+      'No se han podido cargar los productos',
+    );
+
+    elemento.querySelector<HTMLButtonElement>('product-filter button')!.click();
+    await fixture.whenStable();
+    http.expectOne(`${API}/products?${ORDEN}`).flush([productoJson(1)]);
+    await fixture.whenStable();
+
+    expect(elemento.querySelector('[role="alert"]')).toBeNull();
+    expect(botones()).toEqual(['Comprar por 59.90 €']);
+    await responderCategorias();
+  });
+
+  it('«Todas las categorías» quita el filtro de categoría', async () => {
+    http.expectOne(`${API}/products?${ORDEN}`).flush([]);
+    await fixture.whenStable();
+    await responderCategorias();
+    const select = elemento.querySelector<HTMLSelectElement>('product-filter select')!;
+    const buscar = async () => {
+      elemento.querySelector<HTMLButtonElement>('product-filter button')!.click();
+      await fixture.whenStable();
+    };
+
+    select.selectedIndex = 2; // Películas
+    select.dispatchEvent(new Event('change'));
+    await buscar();
+    http.expectOne(`${API}/products?${ORDEN}&category.id=2`).flush([]);
+    await fixture.whenStable();
+
+    select.selectedIndex = 0; // Todas las categorías
+    select.dispatchEvent(new Event('change'));
+    await buscar();
+    http.expectOne(`${API}/products?${ORDEN}`).flush([]);
+    await fixture.whenStable();
   });
 });
