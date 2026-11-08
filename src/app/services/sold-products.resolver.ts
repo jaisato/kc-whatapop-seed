@@ -1,5 +1,6 @@
 import { inject } from '@angular/core';
-import { ResolveFn } from '@angular/router';
+import { RedirectCommand, ResolveFn, Router } from '@angular/router';
+import { catchError, of } from 'rxjs';
 
 import { Product } from '../models/product';
 import { ProductService } from './product.service';
@@ -26,5 +27,10 @@ export const soldProductsResolver: ResolveFn<Product[]> = () => {
   let filter: ProductFilter = {};
   filter.state = 'sold';
 
-  return inject(ProductService).getProducts(filter);
+  // Con la API caída se vuelve al listado, que avisa del error. Un error en el resolver
+  // cancelaba la navegación: entrando directamente a /reset no se pintaba nada.
+  const router = inject(Router);
+  return inject(ProductService)
+    .getProducts(filter)
+    .pipe(catchError(() => of(new RedirectCommand(router.parseUrl('/products')))));
 };

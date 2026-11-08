@@ -64,6 +64,41 @@ describe('rutas de la aplicación', () => {
     expect(harness.routeNativeElement?.textContent).toContain('Poner Vendido a la venta');
   });
 
+  // Lo que pide el listado al activarse: los productos y las categorías del filtro.
+  const cargarListado = async () => {
+    (await peticion(`${API}/products?${ORDEN}`)).flush([]);
+    (await peticion(`${API}/categories`)).flush(categoriasJson);
+  };
+
+  it('/products/:productId de un producto que no existe vuelve a /products', async () => {
+    const navegacion = harness.navigateByUrl('/products/999');
+    (await peticion(`${API}/products/999`)).flush('Not Found', {
+      status: 404,
+      statusText: 'Not Found',
+    });
+    await navegacion;
+    await cargarListado();
+
+    expect(TestBed.inject(Router).url).toBe('/products');
+  });
+
+  it('/products/:productId con un id que no es un número vuelve a /products sin pedirlo', async () => {
+    await harness.navigateByUrl('/products/abc');
+    await cargarListado();
+
+    expect(TestBed.inject(Router).url).toBe('/products');
+    http.expectNone((req) => req.url.startsWith(`${API}/products/`));
+  });
+
+  it('/reset con la API caída vuelve a /products', async () => {
+    const navegacion = harness.navigateByUrl('/reset');
+    (await peticion(`${API}/products?${ORDEN}&state=sold`)).error(new ProgressEvent('error'));
+    await navegacion;
+    await cargarListado();
+
+    expect(TestBed.inject(Router).url).toBe('/products');
+  });
+
   it('cualquier otra ruta redirige a /products', async () => {
     await harness.navigateByUrl('/no-existe');
     (await peticion(`${API}/products?${ORDEN}`)).flush([]);
