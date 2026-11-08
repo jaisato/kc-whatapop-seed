@@ -91,6 +91,25 @@ describe('ProductDetailComponent', () => {
     expect(navegar).toHaveBeenCalledExactlyOnceWith(['/products']);
   });
 
+  it('si la compra falla lo avisa, sigue a la venta y no vuelve a /products', async () => {
+    await pulsar('Comprar');
+    await pulsar('Sí');
+    compra()[0].flush('Error', { status: 500, statusText: 'Internal Server Error' });
+    await fixture.whenStable();
+
+    expect(dialogo().open).toBe(true);
+    expect(mensaje()).toBe('No se ha podido completar la compra. Inténtalo de nuevo.');
+    expect(botonesDelDialogo()).toEqual(['Sí']);
+
+    await pulsar('Sí');
+    await siguienteTarea();
+
+    expect(dialogo().open).toBe(false);
+    expect(navegar).not.toHaveBeenCalled();
+    // Se puede volver a intentar.
+    expect(elemento.textContent).toContain('Comprar por 59.90 €');
+  });
+
   it('«No» no compra', async () => {
     await pulsar('Comprar');
     await pulsar('No');

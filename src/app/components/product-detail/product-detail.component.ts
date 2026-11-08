@@ -45,7 +45,12 @@ export class ProductDetailComponent implements OnInit {
     this._productService
       .buyProduct(product.id)
       .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe(() => this._showPurchaseConfirmation());
+      .subscribe({
+        next: () => this._showPurchaseConfirmation(),
+        // Sin esto un fallo de la API (caída, 404, 500) solo llegaba a la consola: el diálogo
+        // ya se había cerrado y el detalle seguía igual, como si «Sí» no hubiera hecho nada.
+        error: () => this._showPurchaseError(),
+      });
   }
 
   private _showPurchaseConfirmation(): void {
@@ -53,6 +58,13 @@ export class ProductDetailComponent implements OnInit {
       rejectVisible: false,
       message: 'Producto comprado. ¡Enhorabuena!',
       accept: () => this._router.navigate(['/products']),
+    });
+  }
+
+  private _showPurchaseError(): void {
+    this._confirmDialog().confirm({
+      rejectVisible: false,
+      message: 'No se ha podido completar la compra. Inténtalo de nuevo.',
     });
   }
 
