@@ -53,6 +53,20 @@ describe('rutas de la aplicación', () => {
     );
   });
 
+  it('/products/:productId vuelve al listado si el producto no existe', async () => {
+    const navegacion = harness.navigateByUrl('/products/9999');
+    (await peticion(`${API}/products/9999`)).flush('Not Found', {
+      status: 404,
+      statusText: 'Not Found',
+    });
+    await navegacion;
+    (await peticion(`${API}/products?${ORDEN}`)).flush([]);
+    (await peticion(`${API}/categories`)).flush(categoriasJson);
+
+    // Antes el error del resolver cancelaba la navegación y la página se quedaba en blanco.
+    expect(TestBed.inject(Router).url).toBe('/products');
+  });
+
   it('/reset resuelve los productos vendidos (Yellow Path)', async () => {
     const navegacion = harness.navigateByUrl('/reset', ProductResetComponent);
     (await peticion(`${API}/products?${ORDEN}&state=sold`)).flush([
