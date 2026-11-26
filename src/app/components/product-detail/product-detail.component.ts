@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, input, viewChild } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, input, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
@@ -34,6 +34,8 @@ export class ProductDetailComponent implements OnInit {
   readonly product = input<Product>();
   // Sustituye a ConfirmationService y <p-confirmDialog> de PrimeNG.
   private readonly _confirmDialog = viewChild.required(ConfirmDialogComponent);
+  // Si la última compra ha fallado (API caída, producto que ya no existe).
+  protected readonly _purchaseError = signal(false);
 
   ngOnInit(): void {
     window.scrollTo(0, 0);
@@ -42,10 +44,19 @@ export class ProductDetailComponent implements OnInit {
   private _buyProduct(product: Product): void {
     // Si se sale del detalle antes de la respuesta, se cancela y no aparece el aviso (antes lo
     // hacía ngOnDestroy con la Subscription guardada).
+    //
+    // Sin manejar el error, una compra fallida no hacía nada: el diálogo se cerraba con el «Sí»,
+    // no salía ningún aviso y el error solo llegaba a la consola.
     this._productService
       .buyProduct(product.id)
       .pipe(takeUntilDestroyed(this._destroyRef))
-      .subscribe(() => this._showPurchaseConfirmation());
+      .subscribe({
+        next: () => {
+          this._purchaseError.set(false);
+          this._showPurchaseConfirmation();
+        },
+        error: () => this._purchaseError.set(true),
+      });
   }
 
   private _showPurchaseConfirmation(): void {

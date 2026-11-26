@@ -36,6 +36,11 @@
       |   - 1 dígito mínimo (parte entera)                               |
       |   - 2 dígitos mínimo y máximo (parte decimal)                    |
       |~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+      @if (_purchaseError()) {
+        <div class="text-center" role="alert">
+          <span>No se ha podido completar la compra. Inténtalo de nuevo.</span>
+        </div>
+      }
       @if (product.state === 'selling') {
         <button (click)="showPurchaseWarning(product)" class="button large expanded">
           Comprar por {{ product.price | number: '1.2-2' }} €
